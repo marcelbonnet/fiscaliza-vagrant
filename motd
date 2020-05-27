@@ -1,0 +1,39 @@
+  ____           _    ___  ____    _____ 
+ / ___|___ _ __ | |_ / _ \/ ___|  |___  |
+| |   / _ \ '_ \| __| | | \___ \     / / 
+| |__|  __/ | | | |_| |_| |___) |   / /  
+ \____\___|_| |_|\__|\___/|____/   /_/   
+_______________________________________________
+- VirtualBox configurado com port forwarding:
+   localhost:10080 => centos:80 (Apache)
+   localhost:10022 => centos:22 (SSH)
+
+- Redmine instalado em:
+   Fiscaliza:  /opt/redmine323fiscaliza
+   Suporte:	   /opt/redmine323suporte
+- Base de Dados PostgreSQL:
+   - "redmine323fiscaliza" redmine puro, zerado.
+   - Crie outra(s) pro Fiscaliza.
+
+- WEB
+   Redmine
+	  * http://localhost:10080/fiscaliza323
+	  * http://localhost:10080/fiscaliza323/suporte
+	  Login
+		 * Redmine Zerado: login=admin, senha=12345678
+- Open Street Maps
+   Tiles
+	  * http://localhost:10080/renderd/exemplo.html
+   Nominatim
+	  * http://localhost:10080/nominatim/
+
+- Você já está com variável RAILS_ENV=production
+- Para Reiniciar o Apache: use o alias 'r'
+- Para Shell do Postgres: use o alias 'psql'
+- Use os symlinks para o diretório do Redmine:
+   cd ~/fiscaliza
+   cd ~/suporte
+
+- Utilitários: use o comando 'ajuda'
+_______________________________________________
+
