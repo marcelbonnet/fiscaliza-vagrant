@@ -1,6 +1,10 @@
 #!/bin/bash
 # 2020-05-27
 
-echo -n "onde estou? "
-pwd
-wget https://github.com/marcelbonnet/fiscaliza-vagrant/archive/master.zip
+echo -n "Atualizando utilitários..."
+rm -rf fiscaliza-vagrant-master
+curl -sSL https://github.com/marcelbonnet/fiscaliza-vagrant/archive/master.zip | unzip -
+[[ $? -ne 0 ]] && echo "Houve erro. Tente mais tarde." && exit
+[[ -e /root/bin ]] || mkdir /root/bin
+ln -s /root/fiscaliza-vagrant-master/ajuda bin/ajuda
+cp /root/fiscaliza-vagrant-master/motd /etc/motd
