@@ -1,0 +1,93 @@
+#!/bin/bash
+# 2020-05-27
+
+SHARE=${VAGRANT_DIR:=/vagrant}
+
+function uso(){
+	echo -e "\e[33mQuando eu precisar de arquivos, espero encontrá-los em \e[33;1m${SHARE}\e[33m."
+	echo -e "Para alterar o caminho você pode rodar o script assim:"
+	echo -e "VAGRANT_DIR=\"/vagrant_data_xpto/Meus Dados\" `basename $0`"
+	echo -e "\e[0m"
+
+	printf "\tOpções:\n"
+	printf "\t%s --dir [diretório]\n" "`basename $0`"
+	printf "\t\t Configura variável VAGRANT_DIR de modo permanente, se você quiser usar outro caminho para o script quando procurar por arquivos.\n"
+	printf "\t%s --dblist\n" "`basename $0`"
+	printf "\t\t Lista as bases de dados do postgres\n"
+	printf "\t%s --drop [nome da base de dados] \n" "`basename $0`"
+	printf "\t\t Remove uma base de dados do postgres\n"
+	printf "\t%s --restore [nome da base de dados] [arquivo] \n" "`basename $0`"
+	printf "\t\t Recupera um backup do Postgres. Se a base existir, será destruída primeiro. Se não existir, será criada.\n"
+	printf "\t%s --dump [nome da base de dados] [arquivo] \n" "`basename $0`"
+	printf "\t\t Gera um backup do Postgres para o arquivo.\n"
+	printf "\t%s --redmine-set-db [nome da base de dados] [f|s|caminho] \n" "`basename $0`"
+	printf "\t\t Configura qual banco de dados o Redmine usará.\n\t\t\t-f\tRedmine Fiscaliza\n\t\t\t-s\tRedmine Suporte\n\t\t\tcaminho\tCaminho para o redmine\n"
+	printf "\t%s --redmine-db \n" "`basename $0`"
+	printf "\t\t Exibe o db em uso pelos Redmine instalados\n"
+	exit 1
+}
+
+function _dir(){
+	shift
+	[[ $# -eq 0 ]] && uso;
+	grep VAGRANT_DIR .bashrc > /dev/null
+	if [ $? -eq 0 ]; then
+		sed -i'.orig' -e "s,VAGRANT_DIR=.*,VAGRANT_DIR=$1," /root/.bashrc
+		rm /root/.bashrc.orig
+	else
+		echo "export VAGRANT_DIR=\"$1\"" >> /root/.bashrc
+	fi
+	echo -e "Agora rode o comando \e[37;1msource /root/.bashrc\e[0m para ter efeito."
+}
+
+function _drop(){
+	shift
+	[[ $# -eq 0 ]] && uso;
+	psql -c "DROP DATABASE IF EXISTS $1"
+}
+
+function _restore(){
+	shift
+	[[ $# -lt 2 ]] && uso;
+	psql -c "DROP DATABASE IF EXISTS $1"
+	psql -c "CREATE DATABASE $1 OWNER=redmine"
+	pg_restore -U postgres -d $1 -O -x ${SHARE}/$2
+}
+
+function _dump(){
+	shift
+	[[ $# -lt 2 ]] && uso;
+	pg_dump -U postgres -Fc -d $1 -f ${SHARE}/$2
+}
+
+function _redmine_set_db(){
+	shift
+	[[ $# -lt 2 ]] && uso;
+	
+	[[ $2 == "-f" ]] && caminho=/opt/redmine323fiscaliza/
+	[[ $2 == "-s" ]] && caminho=/opt/redmine323suporte/
+	[[ ${#2} -gt 2 ]] && caminho="$2"
+
+	sed -i'.orig' -e 's,  database,  #database,' -e "3i\ \ database: $1" ${caminho}/config/database.yml
+}
+
+function _redmine_db(){
+	grep "^  database:" /opt/redmine323*/config/database.yml | awk '{print "\033[35;1m"$1"\033[36m\t"$3"\033[0m"}'
+}
+
+[[ ! "${1#-}" ]] && uso && exit 1
+while test "${1#-}" != "$1"
+do
+	case "$1" in
+	--dblist) psql -U postgres -c "\l" ; shift ;;
+	--drop) _drop $@ ; shift ;;
+	--restore) _restore $@ ; shift ;;
+	--dir) _dir $@ ; shift ;;
+	--dump) _dump $@ ; shift ;;
+	--redmine-set-db) _redmine_set_db $@ ; shift; break ;;
+	--redmine-db) _redmine_db $@ ;;
+	-*) uso ;;
+	*) break ;;
+	esac
+	shift
+done
