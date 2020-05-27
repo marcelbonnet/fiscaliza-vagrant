@@ -2,7 +2,7 @@
 # 2020-05-27
 
 echo -n "Atualizando utilitários..."
-curl -O -L https://github.com/marcelbonnet/fiscaliza-vagrant/archive/master.zip
+curl -s -O -L https://github.com/marcelbonnet/fiscaliza-vagrant/archive/master.zip
 rm -rf fiscaliza-vagrant-master
 unzip master.zip && rm master.zip
 [[ $? -ne 0 ]] && echo "Houve erro. Tente mais tarde." && exit
