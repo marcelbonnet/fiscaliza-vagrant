@@ -43,14 +43,14 @@ function _dir(){
 function _drop(){
 	shift
 	[[ $# -eq 0 ]] && uso;
-	psql -c "DROP DATABASE IF EXISTS $1"
+	psql -U postgres -c "DROP DATABASE IF EXISTS $1"
 }
 
 function _restore(){
 	shift
 	[[ $# -lt 2 ]] && uso;
-	psql -c "DROP DATABASE IF EXISTS $1"
-	psql -c "CREATE DATABASE $1 OWNER=redmine"
+	psql -U postgres -c "DROP DATABASE IF EXISTS $1"
+	psql -U postgres -c "CREATE DATABASE $1 OWNER=redmine"
 	pg_restore -U postgres -d $1 -O -x ${SHARE}/$2
 }
 
