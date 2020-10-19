@@ -26,6 +26,8 @@ _______________________________________________
 	  * http://localhost:10080/renderd/exemplo.html
    Nominatim
 	  * http://localhost:10080/nominatim/
+   Graph Hopper (Rotas)	  
+	  * http://localhost:10080/openstreetmap/rotas/route?point=-25.429596%2C-49.271272&point=-23.311288%2C-51.159502&type=json&locale=pt-BR&key=&elevation=false&profile=car&points_encoded=false
 
 - Você já está com variável RAILS_ENV=production
 - Para Reiniciar o Apache: use o alias 'r'
