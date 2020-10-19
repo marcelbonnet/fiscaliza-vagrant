@@ -24,6 +24,8 @@ function uso(){
 	printf "\t\t Configura qual banco de dados o Redmine usará.\n\t\t\t-f\tRedmine Fiscaliza\n\t\t\t-s\tRedmine Suporte\n\t\t\tcaminho\tCaminho para o redmine\n"
 	printf "\t%s --redmine-db \n" "`basename $0`"
 	printf "\t\t Exibe o db em uso pelos Redmine instalados\n"
+	printf "\t%s --osm-uf \n" "`basename $0`"
+	printf "\t\t Reinstala a base de dados do OSM para outra UF. No momento, refaz apenas para MT.\n"
 	exit 1
 }
 
@@ -75,6 +77,48 @@ function _redmine_db(){
 	grep "^  database:" /opt/redmine323*/config/database.yml | awk '{print "\033[35;1m"$1"\033[36m\t"$3"\033[0m"}'
 }
 
+function _osmosis(){
+	local uf="MT"
+
+	echo "Depois do download terminar, a carga do Tiles e do Nominatim pode levar de 30 a 60 minutos"
+	echo "A geração dos caches de imagens talvez umas 3 horas"
+
+	# Para fazer a carga dos Tiles para o Centro Oeste:
+	wget -O regiao_${uf}.osm.pbf https://download.geofabrik.de/south-america/brazil/centro-oeste-latest.osm.pbf
+	# Para pegar apenas uma UF, fazer como na região sul, em que extraí apenas um retângulo que compreende o Paraná:
+	# ~/osmosis/bin/osmosis --rb sul-latest.osm.pbf --bounding-box -55 -47 -22 -27 --wb PR.pbf
+	# ~/osmosis/bin/osmosis --rb sul-latest.osm.pbf --bounding-box left=-55 right=-47 top=-22 bottom=-27 --wb PR.pbf
+	# ~/osmosis/bin/osmosis --rb sul-latest.osm.pbf --bounding-box left=-55 right=-47 top=-22 bottom=-27 zoom=18 --wb PRzoom18.pbf
+
+	# MT:
+	~/osmosis/bin/osmosis --rb regiao_${uf}.osm.pbf --bounding-box left=-62 right=-50 top=-7 bottom=-18 zoom=18 --wb /opt/osm-arq/pbf/${uf}.pbf
+
+	# Detonar e recriar a base de dados de Tiles e fazer carga:
+
+	dropdb -U postgres osm_tiles
+	createdb -U postgres -E UTF8 -O osm osm_tiles
+	psql -U postgres -c "CREATE EXTENSION hstore;" -d osm_tiles
+	psql -U postgres -c "CREATE EXTENSION postgis;" -d osm_tiles
+	time /usr/local/bin/osm2pgsql -U osm --slim -d osm_tiles -C 1024  --hstore -S /var/www/openstreetmap-carto-4.25.0/openstreetmap-carto.style /opt/osm-arq/pbf/${uf}.pbf
+
+
+	# Refazer o Nominatim
+
+	time /srv/nominatim/build/utils/setup.php --osm-file /opt/osm-arq/pbf/${uf}.pbf --osm2pgsql-cache 1024  --all 2>&1 | tee setup.log
+
+	# Graph hopper:
+	sed -i'.orig' -e "s,PR\.pbf,${uf}\.pbf," /srv/graphhopper/config.yml
+
+	# Gerar o cache de imagens:
+	rm -rf /var/lib/mod_tile/default/*
+	echo "========================================================"
+	echo "Por padrão o cache será até zoom 10, pra demorar menos. Para gerar de zoom 11 a 18, por exemplo, rode na mão, mais tarde:"
+	echo "/usr/local/bin/render_list -m default -a -z 11 -Z 18"
+	echo "========================================================"
+
+	time /usr/local/bin/render_list -m default -a -z 0 -Z 10
+}
+
 [[ ! "${1#-}" ]] && uso && exit 1
 while test "${1#-}" != "$1"
 do
@@ -86,6 +130,7 @@ do
 	--dump) _dump $@ ; shift ;;
 	--redmine-set-db) _redmine_set_db $@ ; shift; break ;;
 	--redmine-db) _redmine_db $@ ;;
+	--osm-uf) _osmosis $@ ; shift ;;
 	-*) uso ;;
 	*) break ;;
 	esac
