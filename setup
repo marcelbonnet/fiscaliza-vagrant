@@ -7,5 +7,5 @@ rm -rf fiscaliza-vagrant-master
 unzip master.zip && rm master.zip
 [[ $? -ne 0 ]] && echo "Houve erro. Tente mais tarde." && exit
 [[ -e /root/bin ]] || mkdir /root/bin
-ln -s /root/fiscaliza-vagrant-master/ajuda bin/ajuda #2&> /dev/null
+[[ ! -e bin/ajuda ]] && ln -s /root/fiscaliza-vagrant-master/ajuda bin/ajuda
 cp /root/fiscaliza-vagrant-master/motd /etc/motd
