@@ -48,5 +48,13 @@ fi
 if [ ! -e /root/.patch_suporte_db_ok ]; then 
 	sed -e "s,database:.*,#database: nome_da_base," /opt/redmine323fiscaliza/config/database.yml > /opt/redmine323suporte/config/database.yml
 	> /root/.patch_suporte_db_ok
-	echo "Aplicado patch do Suporte (database). Configure sua base de dados agora."
+	echo "-- Aplicado patch do Suporte (database). Configure sua base de dados agora."
+fi
+
+if [ ! -e /root/.patch_suporte_db2_ok ]; then 
+	echo "  database: redmine323suporte" >> /opt/redmine323suporte/config/database.yml
+	> /root/.patch_suporte_db2_ok
+	cp -v /opt/redmine323fiscaliza/config/additional_environment.rb /opt/redmine323suporte/config/additional_environment.rb
+	echo "-- Aplicado patch #2 do Suporte. Adicionei o database padrão. "
+	echo "-- Configurei os logs do ambiente de suporte."
 fi
