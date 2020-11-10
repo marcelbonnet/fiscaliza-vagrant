@@ -29,7 +29,7 @@ _______________________________________________
    Graph Hopper (Rotas)	  
 	  * http://localhost:10080/openstreetmap/rotas/route?point=-25.429596%2C-49.271272&point=-23.311288%2C-51.159502&type=json&locale=pt-BR&key=&elevation=false&profile=car&points_encoded=false
 
-- Você já está com variável RAILS_ENV=production
+- Você já está com variável RAILS_ENV=development
 - Para Reiniciar o Apache: use o alias 'r'
 - Para Shell do Postgres: use o alias 'psql'
 - Use os symlinks para o diretório do Redmine:

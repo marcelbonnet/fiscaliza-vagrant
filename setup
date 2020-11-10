@@ -9,3 +9,38 @@ unzip master.zip && rm master.zip
 [[ -e /root/bin ]] || mkdir /root/bin
 [[ ! -e bin/ajuda ]] && ln -s /root/fiscaliza-vagrant-master/ajuda bin/ajuda
 cp /root/fiscaliza-vagrant-master/motd /etc/motd
+
+if [ ! -e /root/.patch_suporte_ok ]; then 
+cat <<EOF > /etc/httpd/conf.d/redmine323
+# Este arquivo deve ser importado por 0.conf
+     Alias "/fiscaliza323" "/opt/redmine323fiscaliza/public"
+     <LocationMatch "^/fiscaliza323/(?!suporte).*">
+          PassengerRuby /usr/local/rvm/wrappers/ruby-2.2.2/ruby
+          PassengerBaseURI /fiscaliza323
+          PassengerAppRoot /opt/redmine323fiscaliza
+          PassengerUser apache
+          RailsEnv development
+     </LocationMatch>
+     <Directory "/opt/redmine323fiscaliza/public">
+         Allow from all
+         Options -MultiViews
+         Require all granted
+     </Directory>
+
+      Alias "/fiscaliza323/suporte" "/opt/redmine323suporte/public"
+      <LocationMatch "^/fiscaliza323/suporte">
+          PassengerRuby /usr/local/rvm/wrappers/ruby-2.2.2/ruby
+          PassengerBaseURI /fiscaliza323/suporte
+          PassengerAppRoot /opt/redmine323suporte
+          PassengerUser apache
+          RailsEnv development
+     </LocationMatch>
+     <Directory "/opt/redmine323suporte/public">
+         Allow from all
+         Options -MultiViews
+         Require all granted
+     </Directory>
+EOF
+cp /opt/redmine323fiscaliza/Gemfile /opt/redmine323suporte/Gemfile
+> /root/.patch_suporte_ok
+fi
