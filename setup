@@ -44,3 +44,9 @@ EOF
 cp /opt/redmine323fiscaliza/Gemfile /opt/redmine323suporte/Gemfile
 > /root/.patch_suporte_ok
 fi
+
+if [ ! -e /root/.patch_suporte_db_ok ]; then 
+	sed -e "s,database:.*,#database: nome_da_base," /opt/redmine323fiscaliza/config/database.yml > /opt/redmine323suporte/config/database.yml
+	> /root/.patch_suporte_db_ok
+	echo "Aplicado patch do Suporte (database). Configure sua base de dados agora."
+fi
