@@ -10,6 +10,10 @@ unzip master.zip && rm master.zip
 [[ ! -e bin/ajuda ]] && ln -s /root/fiscaliza-vagrant-master/ajuda bin/ajuda
 cp /root/fiscaliza-vagrant-master/motd /etc/motd
 
+
+# #############################################################################
+#  PATCH REDMINE DE SUPORTE
+# #############################################################################
 if [ ! -e /root/.patch_suporte_ok ]; then 
 cat <<EOF > /etc/httpd/conf.d/redmine323
 # Este arquivo deve ser importado por 0.conf
@@ -58,3 +62,6 @@ if [ ! -e /root/.patch_suporte_db2_ok ]; then
 	echo "-- Aplicado patch #2 do Suporte. Adicionei o database padrão. "
 	echo "-- Configurei os logs do ambiente de suporte."
 fi
+
+# esses arquivos não devem ser removidos sobre pena de rodar a atualização novamente, sobrescrevendo modificações do usuário da VM
+chattr +i /root/.patch_suporte_*
