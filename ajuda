@@ -54,6 +54,8 @@ function _restore(){
 	psql -U postgres -c "DROP DATABASE IF EXISTS $1"
 	psql -U postgres -c "CREATE DATABASE $1 OWNER=redmine"
 	pg_restore -U postgres -d $1 -O -x ${SHARE}/$2
+	# se estiver fazendo restore da base de dados do Fiscaliza:
+	rails runner "u=User.find_by([\"login like ?\", 'UISoCboc%']); unless u.nil?; u.admin = true; u.login='admin'; u.auth_source = nil; u.salt_password('12345678'); u.save; puts 'Usuário admin 12345678 restaurado.'; end"
 }
 
 function _dump(){
