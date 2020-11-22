@@ -66,8 +66,8 @@ fi
 
 # ############ Phusion Passenger, não temos o pacote de suporte nativo
 if [ ! -e /root/.patch_passenger_native_support_ok ]; then 
-  local f=/etc/httpd/conf.d/redmine323
-  sed -i '9i    SetEnv PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY 0' $f && sed -i '23i    SetEnv PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY 0' $f
+  sed -i '9i    SetEnv PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY 0' /etc/httpd/conf.d/redmine323
+  sed -i '23i    SetEnv PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY 0' /etc/httpd/conf.d/redmine323
   > /root/.patch_passenger_native_support_ok
   echo "-- Aplicado em config do Redmine no Apache (${f})."
   echo "-- Reiniciar as instâncias do Redmine deve ficar bem mais rápido."
