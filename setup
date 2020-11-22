@@ -74,4 +74,4 @@ if [ ! -e /root/.patch_passenger_native_support_ok ]; then
 fi
 
 # esses arquivos não devem ser removidos sobre pena de rodar a atualização novamente, sobrescrevendo modificações do usuário da VM
-chattr +i /root/.patch_suporte_*
+chattr +i /root/.patch_*
