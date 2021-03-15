@@ -159,7 +159,7 @@ if [ ! -e /root/.patch_autotools2_ok ]; then
   # entrada da chave de api
   echo "export GITLAB_API_PRIVATE_TOKEN=" >> /root/.bashrc
 
-  cat << EOF > /root/bin/repo
+  cat << "EOF" > /root/bin/repo
 #!/usr/bin/bash --login
 # 2021-03-15
 # marcelbonnet
