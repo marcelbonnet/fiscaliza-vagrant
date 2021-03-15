@@ -78,7 +78,8 @@ fi
 # ########################
 if [ ! -e /root/.patch_autotools_ok ]; then 
 rvm install ruby-2.7.0
-
+rvm use 2.7.0
+[[ $? -ne 0 ]] && echo "-- Erro em autotools. Abortando provisionamento" && exit 1
 gem install git -v 1.7.0
 gem install gitlab -v 4.16.1
 gem install colorize -v 0.8.1
