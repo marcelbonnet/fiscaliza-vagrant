@@ -149,7 +149,60 @@ cat << EOF > /root/.gitconfig
 	autocrlf = input
 EOF
    > /root/.patch_autotools_ok
+   echo "-- ============================ Atenção ==========================="
+   echo "-- Configuração para uso do script administrativo do git:"
    echo "-- Edite name, email e username em /root/.gitconfig"
+fi
+
+if [ ! -e /root/.patch_autotools2_ok ]; then 
+  rvm use 2.7.0
+  # entrada da chave de api
+  echo "export GITLAB_API_PRIVATE_TOKEN=" >> /root/.bashrc
+
+  cat << EOF > /root/bin/repo
+#!/usr/bin/bash --login
+# 2021-03-15
+# marcelbonnet
+# Carrega o script administrativo do repositório com o RVM
+
+grep GITLAB_API_PRIVATE_TOKEN /root/.bashrc > /dev/null
+if [ $? -ne 0 ]; then
+  echo "Opa!"
+  echo "Não achei a variável GITLAB_API_PRIVATE_TOKEN em /root/.bashrc"
+  exit 1
+fi
+
+k=$(grep GITLAB_API_PRIVATE_TOKEN /root/.bashrc | cut -d '=' -f2)
+if [ "$k" == "" ]; then
+  echo "Opa!"
+  echo "Você não adicionou sua Chave de API do Git Lab Corporativo na variável GITLAB_API_PRIVATE_TOKEN em /root/.bashrc"
+  exit 1
+fi
+
+if [ ! -e /root/bin/repo.rb ]; then
+   echo "==> ERRO"
+   echo "Você deve baixar manualmente do repositório corporativo (autotools) o script repo.rb e colocá-lo em /root/bin."
+   exit 1
+fi
+
+rvm use 2.7.0
+ruby /root/bin/repo.rb $@
+EOF
+  chmod +x /root/bin/repo
+  
+  echo "-- ============================ Atenção ==========================="
+  echo "-- Para usar o script administrativo do repositório git"
+  echo "-- você deve criar uma chave de API no gitlab corporativo."
+  echo "-- Crie a chave com todas as permissões e não a revele para ninguém."
+  echo "-- Abra o arquivo /root/.bashrc e adicione sua chave na "
+  echo "-- variável GITLAB_API_PRIVATE_TOKEN="
+  echo "-- Salve o arquivo .bashrc, faça logoff e login novamente."
+  echo "-- ======================= Instalação Manual ======================="
+  echo "-- Agora vá no repositório corporativo suporte-fi/auto-tools"
+  echo "-- e baixe o script repo.rb . Coloque-o em /root/bin ."
+  echo "-- Rode o script administrativo invocando o comando: repo"
+  
+  > /root/.patch_autotools2_ok
 fi
 
 
