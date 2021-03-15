@@ -73,5 +73,86 @@ if [ ! -e /root/.patch_passenger_native_support_ok ]; then
   echo "-- Reiniciar as instâncias do Redmine deve ficar bem mais rápido."
 fi
 
+# ########################
+# GIT E AUTO TOOLS
+# ########################
+if [ ! -e /root/.patch_autotools_ok ]; then 
+rvm install ruby-2.7.0
+
+gem install git -v 1.7.0
+gem install gitlab -v 4.16.1
+gem install colorize -v 0.8.1
+gem install rubyzip -v 2.0.0
+
+cat << EOF > /root/.gitconfig
+[alias]
+   clones = clone -c http.sslVerify=false
+   https = "!git config http.sslVerify false"
+
+   ls = log --pretty=format:"%C(bold)%C(magenta)%h\\ %C(yellow)%as%Cred%d\\ %Creset%s%Cgreen\\ [%cn]" 
+   ll = log --pretty=format:"%C(bold)%C(magenta)%h\\ %C(yellow)%as%Cred%d\\ %Creset%s%Cgreen\\ [%cn]" --name-only
+
+
+   blt = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
+
+   new = "!f() { git checkout -b "$1"; }; f"
+   bm = "!f() { git pull --stat origin "$1"; }; f"
+   rmt = "!f() { git tag -d "$1" && git push origin --delete "$1"; }; f"
+   dry = "!f() { git merge --no-commit --no-ff "$1"; }; f"
+   branches = branch -a
+
+   # diff last commit
+   dlc = diff --cached HEAD^
+   # Show the history of a file, with diffs
+   filelog = log -u
+   fl = log -u
+
+   # Show content (full diff) of a commit given a revision:
+   dr  = "!f() { git diff "$1"^.."$1"; }; f"
+   diffr  = "!f() { git diff "$1"^.."$1"; }; f"
+   diffdel= log --no-renames --diff-filter=D --summary
+
+
+   # list aliases
+   la = "!git config -l | grep alias | cut -c 7-"
+
+   # mostra ultima tag
+   lt = describe --tags --abbrev=0
+
+
+   # funcao strftime existe no gawk 
+   tags2 = !"git for-each-ref \
+        --sort=taggerdate "
+   tagsd = !"git for-each-ref \
+        --sort=taggerdate \
+        --format '%(tag)_,,,_%(taggerdate:raw)_,,,_%(taggername)_,,,_%(subject)' refs/tags \
+        | gawk 'BEGIN { FS = \"_,,,_\"  } ; { t=strftime(\"%Y-%m-%d  %H:%M\",$2); printf \"%-20s %-18s %-25s %s\\n\", t, $1, $4, $3  }'"
+   tags = tag --column
+   versoes = tag --list '[0-9].[0-9].[0-9]'
+
+
+
+
+[user]
+	name = Seu Nome No /root/.gitconfig
+	email = seu_email@anatel.gov.br
+
+[credential "https://git.anatel.gov.br"]
+	username = seu_login
+	helper = cache --timeout 36000
+
+[http "https://git.anatel.gov.br"]
+	sslVerify = false
+[core]
+	autocrlf = input
+EOF
+   > /root/.patch_autotools_ok
+   echo "-- Edite name, email e username em /root/.gitconfig"
+fi
+
+
+# ############################
+# RODAR NO FINAL DO SCRIPT
+# ############################
 # esses arquivos não devem ser removidos sobre pena de rodar a atualização novamente, sobrescrevendo modificações do usuário da VM
 chattr +i /root/.patch_*
