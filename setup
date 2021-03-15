@@ -148,6 +148,8 @@ cat << "EOF" > /root/.gitconfig
 [core]
 	autocrlf = input
 EOF
+   # o repo.rb vai precisar disso apesar da config por domínio:
+   git config --global http.sslVerify "false"
    > /root/.patch_autotools_ok
    echo "-- ============================ Atenção ==========================="
    echo "-- Configuração para uso do script administrativo do git:"
