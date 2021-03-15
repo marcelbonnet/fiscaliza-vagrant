@@ -86,7 +86,7 @@ gem install gitlab -v 4.16.1
 gem install colorize -v 0.8.1
 gem install rubyzip -v 2.0.0
 
-cat << EOF > /root/.gitconfig
+cat << "EOF" > /root/.gitconfig
 [alias]
    clones = clone -c http.sslVerify=false
    https = "!git config http.sslVerify false"
@@ -152,6 +152,8 @@ EOF
    echo "-- ============================ Atenção ==========================="
    echo "-- Configuração para uso do script administrativo do git:"
    echo "-- Edite name, email e username em /root/.gitconfig"
+   echo "-- Rode o comando a seguir para baixar o script administrativo:"
+   echo "   git clones https://git.anatel.gov.br/suporte-fi/auto-tools.git"
 fi
 
 if [ ! -e /root/.patch_autotools2_ok ]; then 
@@ -179,14 +181,14 @@ if [ "$k" == "" ]; then
   exit 1
 fi
 
-if [ ! -e /root/bin/repo.rb ]; then
-   echo "==> ERRO"
-   echo "Você deve baixar manualmente do repositório corporativo (autotools) o script repo.rb e colocá-lo em /root/bin."
+if [ ! -e /root/auto-tools/repo.rb ]; then
+   echo "==> ERRO: não achei o script administrativo"
+   echo "Você deve rodar: git clones https://git.anatel.gov.br/suporte-fi/auto-tools.git"
    exit 1
 fi
 
 rvm use 2.7.0
-ruby /root/bin/repo.rb $@
+ruby /root/auto-tools/repo.rb $@
 EOF
   chmod +x /root/bin/repo
   
