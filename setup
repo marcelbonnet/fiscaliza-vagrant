@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/bash --login
+# UPDATE 2021-03-15 : preciso do login shell para usar o RVM
 # 2020-05-27
 
 echo -n "Atualizando utilitários..."
