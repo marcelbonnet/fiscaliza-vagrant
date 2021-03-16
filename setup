@@ -206,6 +206,11 @@ EOF
   > /root/.patch_autotools2_ok
 fi
 
+if [ ! -e /root/.patch_bashrc1_ok ]; then 
+  echo "alias rp='systemctl restart postgresql-12'" >> /root/.bashrc
+  > /root/.patch_bashrc1_ok
+fi
+
 
 # ############################
 # RODAR NO FINAL DO SCRIPT
