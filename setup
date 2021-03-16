@@ -152,6 +152,7 @@ EOF
    git config --global http.sslVerify "false"
    > /root/.patch_autotools_ok
    echo "-- ============================ Atenção ==========================="
+   echo "-- ======================= Instalação Manual ======================="
    echo "-- Configuração para uso do script administrativo do git:"
    echo "-- Edite name, email e username em /root/.gitconfig"
    echo "-- Rode o comando a seguir para baixar o script administrativo:"
@@ -201,10 +202,6 @@ EOF
   echo "-- Abra o arquivo /root/.bashrc e adicione sua chave na "
   echo "-- variável GITLAB_API_PRIVATE_TOKEN="
   echo "-- Salve o arquivo .bashrc, faça logoff e login novamente."
-  echo "-- ======================= Instalação Manual ======================="
-  echo "-- Agora vá no repositório corporativo suporte-fi/auto-tools"
-  echo "-- e baixe o script repo.rb . Coloque-o em /root/bin ."
-  echo "-- Rode o script administrativo invocando o comando: repo"
   
   > /root/.patch_autotools2_ok
 fi
