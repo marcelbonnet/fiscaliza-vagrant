@@ -252,7 +252,7 @@ if [ ! -e /root/.patch_redmine411_ok ]; then
   
   gem install activerecord-compatible_legacy_migration
   
-  bundle exec rake db:migrate
+  #bundle exec rake db:migrate #só depois de importar uma base do Redmine 3
   
   # adicionar o arquivo /etc/httpd/conf.d/411
   cat <<EOF > /etc/httpd/conf.d/redmine411
@@ -293,6 +293,8 @@ EOF
   echo "-- rvm use 2.6.6"
   echo "-- Se estiver seguro de usá-lo como o padrão (incompatível com Redmine 3):"
   echo "-- rvm use 2.6.6 --default"
+  echo "-- DEPOIS DE FAZER O RESTORE DA BASE DO Redmine 3.x E CONFIGURAR NO config/database.yml :"
+  echo "-- bundle exec rake db:migrate"
   > /root/.patch_redmine411_ok
 fi
 
