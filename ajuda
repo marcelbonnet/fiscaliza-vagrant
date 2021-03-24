@@ -20,8 +20,8 @@ function uso(){
 	printf "\t\t Recupera um backup do Postgres. Se a base existir, será destruída primeiro. Se não existir, será criada.\n"
 	printf "\t%s --dump [nome da base de dados] [arquivo] \n" "`basename $0`"
 	printf "\t\t Gera um backup do Postgres para o arquivo.\n"
-	printf "\t%s --redmine-set-db [nome da base de dados] [f|s|caminho] \n" "`basename $0`"
-	printf "\t\t Configura qual banco de dados o Redmine usará.\n\t\t\t-f\tRedmine Fiscaliza\n\t\t\t-s\tRedmine Suporte\n\t\t\tcaminho\tCaminho para o redmine\n"
+	printf "\t%s --redmine-set-db [nome da base de dados] [-f|-s|-f4|-s4|caminho] \n" "`basename $0`"
+	printf "\t\t Configura qual banco de dados o Redmine usará.\n\t\t\t-f/-f4\tRedmine Fiscaliza/Fiscaliza 4.x\n\t\t\t-s/-s4\tRedmine Suporte/Suporte 4.x\n\t\t\tcaminho\tCaminho para o redmine\n"
 	printf "\t%s --redmine-db \n" "`basename $0`"
 	printf "\t\t Exibe o db em uso pelos Redmine instalados\n"
 	printf "\t%s --osm-uf \n" "`basename $0`"
@@ -70,13 +70,15 @@ function _redmine_set_db(){
 	
 	[[ $2 == "-f" ]] && caminho=/opt/redmine323fiscaliza/
 	[[ $2 == "-s" ]] && caminho=/opt/redmine323suporte/
+	[[ $2 == "-f4" ]] && caminho=/opt/redmine411fiscaliza/
+	[[ $2 == "-s4" ]] && caminho=/opt/redmine411suporte/
 	[[ ${#2} -gt 2 ]] && caminho="$2"
 
 	sed -i'.orig' -e 's,  database,  #database,' -e "3i\ \ database: $1" ${caminho}/config/database.yml
 }
 
 function _redmine_db(){
-	grep "^  database:" /opt/redmine323*/config/database.yml | awk '{print "\033[35;1m"$1"\033[36m\t"$3"\033[0m"}'
+	grep "^  database:" /opt/redmine*/config/database.yml | awk '{print "\033[35;1m"$1"\033[36m\t"$3"\033[0m"}'
 }
 
 function _osmosis(){
