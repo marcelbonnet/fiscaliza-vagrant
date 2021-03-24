@@ -211,6 +211,91 @@ if [ ! -e /root/.patch_bashrc1_ok ]; then
   > /root/.patch_bashrc1_ok
 fi
 
+if [ ! -e /root/.patch_redmine411_ok ]; then 
+  rvm install ruby-2.6.6
+  rvm use 2.6.6
+  versao=4.1.1
+  nome=fiscaliza
+  test -f ~/${versao}.zip || (cd ~ && curl -O -L https://github.com/redmine/redmine/archive/${versao}.zip)
+  unzip -d  /opt/ ~/${versao}.zip
+  mv /opt/redmine-${versao} /opt/redmine${versao//\./}${nome}
+  cd /opt/redmine${versao//\./}${nome}
+  rvm use 2.6.6
+  mkdir -p tmp tmp/pdf public/plugin_assets
+  chown -R apache:apache files log tmp public/plugin_assets
+  chmod -R 755 files log tmp public/plugin_assets
+  
+  cp -v /opt/redmine323fiscaliza/config/database.yml config/database.yml
+  cp -v /opt/redmine323fiscaliza/config/additional_environment.rb config/additional_environment.rb
+  
+  rm -rf plugins
+  ln -s /vagrant/redmine-fiscaliza plugins
+  # 
+  # Copiando os Temas (se estiverem instalados)
+  #
+  cp -R ../redmine323fiscaliza/public/themes/govbr ../redmine323fiscaliza/public/themes/homologacao public/themes/
+  
+  printf "gem 'pg', '~> 1.1.4'\ngem 'activerecord-postgis-adapter'" > Gemfile.local
+  
+  # configurar o pry e o ambiente devel na VM
+  printf "\ngem \"pry-rails\"\n" >> /opt/redmine411fiscaliza/Gemfile.local
+  
+  gem install pg -v 1.1.4 -- --with-pg-config=/usr/pgsql-12/bin/pg_config
+  
+  # estou usando bundler 1.17.3 que já estava instalado (por quem? rvm?)
+  # VM tem ImageMagick . Caso contrário, bundle seria com --without ... rmagick
+  # ImageMagick.x86_64                    6.7.8.9-18.el7             @base          
+  # ImageMagick-devel.x86_64              6.7.8.9-18.el7             @base
+  bundle install --without development test
+  
+  bundle exec rake generate_secret_token
+  
+  gem install activerecord-compatible_legacy_migration
+  
+  bundle exec rake db:migrate
+  
+  # adicionar o arquivo /etc/httpd/conf.d/411
+  cat <<EOF > /etc/httpd/conf.d/redmine411
+  # Este arquivo deve ser importado por 0.conf
+       Alias "/fiscaliza411" "/opt/redmine411fiscaliza/public"
+       <LocationMatch "^/fiscaliza411/(?!suporte).*">
+            PassengerRuby /usr/local/rvm/wrappers/ruby-2.6.6/ruby
+            PassengerBaseURI /fiscaliza411
+            PassengerAppRoot /opt/redmine411fiscaliza
+            PassengerUser apache
+            RailsEnv development
+  SetEnv PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY 0
+       </LocationMatch>
+       <Directory "/opt/redmine411fiscaliza/public">
+           Allow from all
+           Options -MultiViews
+           Require all granted
+       </Directory>
+  
+        Alias "/fiscaliza411/suporte" "/opt/redmine411suporte/public"
+        <LocationMatch "^/fiscaliza411/suporte">
+            PassengerRuby /usr/local/rvm/wrappers/ruby-2.6.6/ruby
+            PassengerBaseURI /fiscaliza411/suporte
+            PassengerAppRoot /opt/redmine411suporte
+            PassengerUser apache
+  SetEnv PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY 0
+            RailsEnv development
+       </LocationMatch>
+       <Directory "/opt/redmine411suporte/public">
+           Allow from all
+           Options -MultiViews
+           Require all granted
+       </Directory>
+  
+EOF
+  
+  echo "-- Redmine 4.1.1 instalado. Ele ainda não é o padrão. Ele requer o ruby 2.6.6:"
+  echo "-- rvm use 2.6.6"
+  echo "-- Se estiver seguro de usá-lo como o padrão (incompatível com Redmine 3):"
+  echo "-- rvm use 2.6.6 --default"
+  > /root/.patch_redmine411_ok
+fi
+
 
 # ############################
 # RODAR NO FINAL DO SCRIPT
