@@ -317,11 +317,11 @@ EOF
 	mkdir /vagrant/plugins411
 	ln -s /vagrant/plugins411 plugins
 
-
-	echo "-- Para migrar o banco de dados do Redmine 3:"
-	echo "-- ajuda --restore redmine prod_redmine_fiscaliza-20210331.bkp"
-	echo "-- bundle exec rake db:migrate"
-	> /root/.patch_redmine411_p1_ok
+  chown apache:apache /opt/redmine411fiscaliza/log/development.log
+  echo "-- Para migrar o banco de dados do Redmine 3:"
+  echo "-- ajuda --restore redmine prod_redmine_fiscaliza-20210331.bkp"
+  echo "-- bundle exec rake db:migrate"
+  > /root/.patch_redmine411_p1_ok
 fi
 
 
