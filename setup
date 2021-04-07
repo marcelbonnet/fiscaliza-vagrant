@@ -298,6 +298,32 @@ EOF
   > /root/.patch_redmine411_ok
 fi
 
+# patch para Redmine 4.1.1
+if [ ! -e /root/.patch_redmine411_p1_ok ]; then
+
+	rm /opt/redmine411fiscaliza/plugins
+
+cat <<EOF > /opt/redmine411fiscaliza/config/additional_environment.rb
+config.logger = Logger.new(Rails.root.join("log",Rails.env + ".log"), 'daily' )
+config.logger.formatter = proc do |severity, datetime, progname, msg| "#{msg}\n"
+end
+config.log_level = :info
+#config.log_level = :debug
+#config.log_level = :error
+EOF
+
+	bundle exec rake generate_secret_token
+
+	mkdir /vagrant/plugins411
+	ln -s /vagrant/plugins411 plugins
+
+
+	echo "-- Para migrar o banco de dados do Redmine 3:"
+	echo "-- ajuda --restore redmine prod_redmine_fiscaliza-20210331.bkp"
+	echo "-- bundle exec rake db:migrate"
+	> /root/.patch_redmine411_p1_ok
+fi
+
 
 # ############################
 # RODAR NO FINAL DO SCRIPT
