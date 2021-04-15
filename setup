@@ -324,6 +324,14 @@ EOF
   > /root/.patch_redmine411_p1_ok
 fi
 
+if [ ! -e /root/.patch_autotools3_ok ]; then 
+  # resolve o bug do travamento durante o clone
+  rvm use 2.7.0
+  gem install git -v 1.8.1
+  gem uninstall git -v 1.7.0
+  > /root/.patch_autotools3_ok
+fi
+
 
 # ############################
 # RODAR NO FINAL DO SCRIPT
