@@ -332,6 +332,157 @@ if [ ! -e /root/.patch_autotools3_ok ]; then
   > /root/.patch_autotools3_ok
 fi
 
+# Instalação do Redmine 4.2.1 e adiciona correções no script de instalação da 4.1.1
+if [ ! -e /root/.patch_redmine421_ok ]; then   
+  # RAILS_ENV= 	está configurado no ~/.bashrc
+  # test $RAILS_ENV || echo "export RAILS_ENV=production"  >> /root/.bashrc && . /root/.bashrc
+  
+  # ################################################
+  # 	Install Ruby e Redmine
+  #   https://www.redmine.org/projects/redmine/wiki/RedmineInstall
+  # ################################################
+  echo "-- instalando ruby e redmine"
+  ruby_version=2.7.2
+  rvm install ${ruby_version}
+  rvm use ${ruby_version}
+  versao=4.2.1
+  nome=fiscaliza
+  test -f ~/${versao}.zip || (cd ~ && curl -O -L https://github.com/redmine/redmine/archive/${versao}.zip)
+  unzip -q -d  /opt/ ~/${versao}.zip 
+  mv -v /opt/redmine-${versao} /opt/redmine${versao//\./}${nome}
+  cd /opt/redmine${versao//\./}${nome}
+  
+  mkdir -vp tmp tmp/pdf public/plugin_assets
+  chown -R apache:apache files log tmp public/plugin_assets
+  chmod -R 755 files log tmp public/plugin_assets
+  
+  # ################################################
+  # 	VERIFICAR OS AJUSTES MANUAIS
+  # ################################################
+  echo "-- criando a base de dados para Redmine #{versao}"
+  psql -U postgres -c "CREATE DATABASE redmine${versao//\./} WITH ENCODING='UTF8' OWNER=redmine;"
+  # psql -U postgres -c -c "CREATE EXTENSION postgis;" -d redmine${versao//\./}
+
+  # Na VM:
+  # copiar da aplicação 4.1.1 :
+  # config/database.yml
+  # cp -v /opt/redmine411fiscaliza/config/database.yml config/database.yml
+  # additional_environment.rb
+  cat <<EOF > config/database.yml
+default: &default
+  host: localhost
+  username: redmine
+  password: 12345678
+  encoding: utf8
+
+development:
+  <<: *default
+  adapter: postgis
+  #adapter: postgresql
+  # database zerado do Redmine com usuário admin e senha 12345678
+  database: redmine${versao//\./}
+
+EOF
+
+  cp -v /opt/redmine411fiscaliza/config/additional_environment.rb config/additional_environment.rb
+  
+  rm -vrf plugins
+  
+  # 
+  # Copiando os Temas (se estiverem instalados)
+  #
+  cp -R ../redmine411fiscaliza/public/themes/govbr ../redmine411fiscaliza/public/themes/homologacao public/themes/
+  
+  # No servidor corporativo:
+  # config/configuration.yml
+  # the files directory content into your new installation 
+  # plugins directory
+  # public/themes (somente os instalados por plugin ou manualmente!)
+  # COPIAR OS ARQUIVOS DE LOG
+  # configurar o database.yml com adapter: postgis
+  
+  # ################################################
+  # Configuração
+  # ################################################
+  
+  printf "gem 'pg', '~> 1.1.4'\ngem 'activerecord-postgis-adapter'" > Gemfile.local
+  
+  # configurar o pry e o ambiente devel na VM
+  echo "-- configurando o pry no Redmine"
+  printf "\ngem \"pry-rails\"\n" >> /opt/redmine${versao//\./}${nome}/Gemfile.local
+  
+  echo "-- instalando pg adapter"
+  gem install -N pg -v 1.1.4 -- --with-pg-config=/usr/pgsql-12/bin/pg_config
+  echo "-- instalando postgis adapter"
+  gem install -N activerecord-postgis-adapter
+  echo "-- install gem active record..."
+  gem install -N activerecord-compatible_legacy_migration
+  
+  # estou usando bundler 1.17.3 que já estava instalado (por quem? rvm?)
+  # VM tem ImageMagick . Caso contrário, bundle seria com --without ... rmagick
+  # ImageMagick.x86_64                    6.7.8.9-18.el7             @base          
+  # ImageMagick-devel.x86_64              6.7.8.9-18.el7             @base
+  echo "-- bundle install"
+  bundle install --without development test
+  
+  echo "-- rake secret token"
+  bundle exec rake generate_secret_token
+
+  echo "-- db:migrate"
+  bundle exec rake db:migrate
+
+  echo "-- apagando logs"
+  rm -vrf log/*
+
+
+  # echo "-- fazendo um link simbólico'para plugins" # vai ficar zerada essa instalação
+  # ln -sv /vagrant/redmine-fiscaliza-4x plugins
+
+  # APACHE CONF
+  echo "-- configurando site no apache"
+  cat <<EOF > /etc/httpd/conf.d/redmine421
+  # Este arquivo deve ser importado por 0.conf
+       Alias "/fiscaliza421" "/opt/redmine421fiscaliza/public"
+       <LocationMatch "^/fiscaliza421/(?!suporte).*">
+            PassengerRuby /usr/local/rvm/wrappers/ruby-${ruby_version}/ruby
+            PassengerBaseURI /fiscaliza421
+            PassengerAppRoot /opt/redmine421fiscaliza
+            PassengerUser apache
+            RailsEnv development
+  SetEnv PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY 0
+       </LocationMatch>
+       <Directory "/opt/redmine421fiscaliza/public">
+           Allow from all
+           Options -MultiViews
+           Require all granted
+       </Directory>
+  
+        Alias "/fiscaliza421/suporte" "/opt/redmine421suporte/public"
+        <LocationMatch "^/fiscaliza421/suporte">
+            PassengerRuby /usr/local/rvm/wrappers/ruby-${ruby_version}/ruby
+            PassengerBaseURI /fiscaliza421/suporte
+            PassengerAppRoot /opt/redmine421suporte
+            PassengerUser apache
+  SetEnv PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY 0
+            RailsEnv development
+       </LocationMatch>
+       <Directory "/opt/redmine421suporte/public">
+           Allow from all
+           Options -MultiViews
+           Require all granted
+       </Directory>
+  
+EOF
+
+  echo "-- Reiniciando Apache..."
+  systemctl restart httpd
+  
+  echo "-- Redmine ${versao} instalado. Ele ainda não é o padrão. Ele requer o ruby ${ruby_version}:"
+  echo "-- rvm use ${ruby_version}"
+
+  > /root/.patch_redmine421_ok
+fi
+
 
 # ############################
 # RODAR NO FINAL DO SCRIPT
