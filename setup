@@ -405,14 +405,16 @@ EOF
   # Configuração
   # ################################################
   
-  printf "gem 'pg', '~> 1.1.4'\ngem 'activerecord-postgis-adapter'" > Gemfile.local
+# printf "gem 'pg', '~> 1.1.4'\ngem 'activerecord-postgis-adapter'" > Gemfile.local
+  printf "gem 'pg', '~> 1.2.2'\ngem 'activerecord-postgis-adapter'" > Gemfile.local
   
   # configurar o pry e o ambiente devel na VM
   echo "-- configurando o pry no Redmine"
   printf "\ngem \"pry-rails\"\n" >> /opt/redmine${versao//\./}${nome}/Gemfile.local
   
   echo "-- instalando pg adapter"
-  gem install -N pg -v 1.1.4 -- --with-pg-config=/usr/pgsql-12/bin/pg_config
+  # gem install -N pg -v 1.1.4 -- --with-pg-config=/usr/pgsql-12/bin/pg_config
+  gem install -N pg -v 1.2.2 -- --with-pg-config=/usr/pgsql-12/bin/pg_config
   echo "-- instalando postgis adapter"
   gem install -N activerecord-postgis-adapter
   echo "-- install gem active record..."
@@ -423,7 +425,8 @@ EOF
   # ImageMagick.x86_64                    6.7.8.9-18.el7             @base          
   # ImageMagick-devel.x86_64              6.7.8.9-18.el7             @base
   echo "-- bundle install"
-  bundle install --without development test
+  # bundle install --without development test
+  bundle config set without 'development test'
   
   echo "-- rake secret token"
   bundle exec rake generate_secret_token
