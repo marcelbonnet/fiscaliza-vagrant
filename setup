@@ -414,7 +414,7 @@ EOF
   
   echo "-- instalando pg adapter"
   # gem install -N pg -v 1.1.4 -- --with-pg-config=/usr/pgsql-12/bin/pg_config
-  gem install -N pg -v 1.2.2 -- --with-pg-config=/usr/pgsql-12/bin/pg_config
+  gem install -N pg -v '~> 1.2.2' -- --with-pg-config=/usr/pgsql-12/bin/pg_config
   echo "-- instalando postgis adapter"
   gem install -N activerecord-postgis-adapter
   echo "-- install gem active record..."
