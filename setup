@@ -211,118 +211,9 @@ if [ ! -e /root/.patch_bashrc1_ok ]; then
   > /root/.patch_bashrc1_ok
 fi
 
-if [ ! -e /root/.patch_redmine411_ok ]; then 
-  rvm install ruby-2.6.6
-  rvm use 2.6.6
-  versao=4.1.1
-  nome=fiscaliza
-  test -f ~/${versao}.zip || (cd ~ && curl -O -L https://github.com/redmine/redmine/archive/${versao}.zip)
-  unzip -d  /opt/ ~/${versao}.zip
-  mv /opt/redmine-${versao} /opt/redmine${versao//\./}${nome}
-  cd /opt/redmine${versao//\./}${nome}
-  rvm use 2.6.6
-  mkdir -p tmp tmp/pdf public/plugin_assets
-  chown -R apache:apache files log tmp public/plugin_assets
-  chmod -R 755 files log tmp public/plugin_assets
-  
-  cp -v /opt/redmine323fiscaliza/config/database.yml config/database.yml
-  cp -v /opt/redmine323fiscaliza/config/additional_environment.rb config/additional_environment.rb
-  
-  rm -rf plugins
-  ln -s /vagrant/redmine-fiscaliza plugins
-  # 
-  # Copiando os Temas (se estiverem instalados)
-  #
-  cp -R ../redmine323fiscaliza/public/themes/govbr ../redmine323fiscaliza/public/themes/homologacao public/themes/
-  
-  printf "gem 'pg', '~> 1.1.4'\ngem 'activerecord-postgis-adapter'" > Gemfile.local
-  
-  # configurar o pry e o ambiente devel na VM
-  printf "\ngem \"pry-rails\"\n" >> /opt/redmine411fiscaliza/Gemfile.local
-  
-  gem install pg -v 1.1.4 -- --with-pg-config=/usr/pgsql-12/bin/pg_config
-  
-  # estou usando bundler 1.17.3 que já estava instalado (por quem? rvm?)
-  # VM tem ImageMagick . Caso contrário, bundle seria com --without ... rmagick
-  # ImageMagick.x86_64                    6.7.8.9-18.el7             @base          
-  # ImageMagick-devel.x86_64              6.7.8.9-18.el7             @base
-  bundle install --without development test
-  
-  bundle exec rake generate_secret_token
-  
-  gem install activerecord-compatible_legacy_migration
-  
-  #bundle exec rake db:migrate #só depois de importar uma base do Redmine 3
-  
-  # adicionar o arquivo /etc/httpd/conf.d/411
-  cat <<EOF > /etc/httpd/conf.d/redmine411
-  # Este arquivo deve ser importado por 0.conf
-       Alias "/fiscaliza411" "/opt/redmine411fiscaliza/public"
-       <LocationMatch "^/fiscaliza411/(?!suporte).*">
-            PassengerRuby /usr/local/rvm/wrappers/ruby-2.6.6/ruby
-            PassengerBaseURI /fiscaliza411
-            PassengerAppRoot /opt/redmine411fiscaliza
-            PassengerUser apache
-            RailsEnv development
-  SetEnv PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY 0
-       </LocationMatch>
-       <Directory "/opt/redmine411fiscaliza/public">
-           Allow from all
-           Options -MultiViews
-           Require all granted
-       </Directory>
-  
-        Alias "/fiscaliza411/suporte" "/opt/redmine411suporte/public"
-        <LocationMatch "^/fiscaliza411/suporte">
-            PassengerRuby /usr/local/rvm/wrappers/ruby-2.6.6/ruby
-            PassengerBaseURI /fiscaliza411/suporte
-            PassengerAppRoot /opt/redmine411suporte
-            PassengerUser apache
-  SetEnv PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY 0
-            RailsEnv development
-       </LocationMatch>
-       <Directory "/opt/redmine411suporte/public">
-           Allow from all
-           Options -MultiViews
-           Require all granted
-       </Directory>
-  
-EOF
-  
-  echo "-- Redmine 4.1.1 instalado. Ele ainda não é o padrão. Ele requer o ruby 2.6.6:"
-  echo "-- rvm use 2.6.6"
-  echo "-- Se estiver seguro de usá-lo como o padrão (incompatível com Redmine 3):"
-  echo "-- rvm use 2.6.6 --default"
-  echo "-- DEPOIS DE FAZER O RESTORE DA BASE DO Redmine 3.x E CONFIGURAR NO config/database.yml :"
-  echo "-- bundle exec rake db:migrate"
-  > /root/.patch_redmine411_ok
-fi
 
-# patch para Redmine 4.1.1
-if [ ! -e /root/.patch_redmine411_p1_ok ]; then
 
-	rm /opt/redmine411fiscaliza/plugins
 
-cat <<EOF > /opt/redmine411fiscaliza/config/additional_environment.rb
-config.logger = Logger.new(Rails.root.join("log",Rails.env + ".log"), 'daily' )
-config.logger.formatter = proc do |severity, datetime, progname, msg| "#{msg}\n"
-end
-config.log_level = :info
-#config.log_level = :debug
-#config.log_level = :error
-EOF
-
-	bundle exec rake generate_secret_token
-
-	mkdir /vagrant/plugins411
-	ln -s /vagrant/plugins411 plugins
-
-  chown apache:apache /opt/redmine411fiscaliza/log/development.log
-  echo "-- Para migrar o banco de dados do Redmine 3:"
-  echo "-- ajuda --restore redmine prod_redmine_fiscaliza-20210331.bkp"
-  echo "-- bundle exec rake db:migrate"
-  > /root/.patch_redmine411_p1_ok
-fi
 
 if [ ! -e /root/.patch_autotools3_ok ]; then 
   # resolve o bug do travamento durante o clone
@@ -332,7 +223,7 @@ if [ ! -e /root/.patch_autotools3_ok ]; then
   > /root/.patch_autotools3_ok
 fi
 
-# Instalação do Redmine 4.2.1 e adiciona correções no script de instalação da 4.1.1
+# Instalação do Redmine 4.2.1
 if [ ! -e /root/.patch_redmine421_ok ]; then   
   # RAILS_ENV= 	está configurado no ~/.bashrc
   # test $RAILS_ENV || echo "export RAILS_ENV=production"  >> /root/.bashrc && . /root/.bashrc
@@ -363,11 +254,6 @@ if [ ! -e /root/.patch_redmine421_ok ]; then
   psql -U postgres -c "CREATE DATABASE redmine${versao//\./} WITH ENCODING='UTF8' OWNER=redmine;"
   # psql -U postgres -c -c "CREATE EXTENSION postgis;" -d redmine${versao//\./}
 
-  # Na VM:
-  # copiar da aplicação 4.1.1 :
-  # config/database.yml
-  # cp -v /opt/redmine411fiscaliza/config/database.yml config/database.yml
-  # additional_environment.rb
   cat <<EOF > config/database.yml
 default: &default
   host: localhost
@@ -384,15 +270,18 @@ development:
 
 EOF
 
-  cp -v /opt/redmine411fiscaliza/config/additional_environment.rb config/additional_environment.rb
+  cat <<EOF > /opt/redmine${versao//\./}${nome}/config/additional_environment.rb
+config.logger = Logger.new(Rails.root.join("log",Rails.env + ".log"), 'daily' )
+config.logger.formatter = proc do |severity, datetime, progname, msg| "#{msg}\n"
+end
+config.log_level = :info
+#config.log_level = :debug
+#config.log_level = :error
+EOF
   
   rm -vrf plugins
   
-  # 
-  # Copiando os Temas (se estiverem instalados)
-  #
-  cp -R ../redmine411fiscaliza/public/themes/govbr ../redmine411fiscaliza/public/themes/homologacao public/themes/
-  
+    
   # No servidor corporativo:
   # config/configuration.yml
   # the files directory content into your new installation 
@@ -442,38 +331,22 @@ EOF
 
   # APACHE CONF
   echo "-- configurando site no apache"
-  cat <<EOF > /etc/httpd/conf.d/redmine421
+  cat <<EOF > /etc/httpd/conf.d/redmine${versao//\./}
   # Este arquivo deve ser importado por 0.conf
-       Alias "/fiscaliza421" "/opt/redmine421fiscaliza/public"
-       <LocationMatch "^/fiscaliza421/(?!suporte).*">
+       Alias "/fiscaliza${versao//\./}" "/opt/redmine421fiscaliza/public"
+       <LocationMatch "^/${nome}${versao//\./}/(?!suporte).*">
             PassengerRuby /usr/local/rvm/wrappers/ruby-${ruby_version}/ruby
-            PassengerBaseURI /fiscaliza421
-            PassengerAppRoot /opt/redmine421fiscaliza
+            PassengerBaseURI /${nome}${versao//\./}
+            PassengerAppRoot /opt/redmine${versao//\./}${nome}
             PassengerUser apache
             RailsEnv development
   SetEnv PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY 0
        </LocationMatch>
-       <Directory "/opt/redmine421fiscaliza/public">
+       <Directory "/opt/redmine${versao//\./}${nome}/public">
            Allow from all
            Options -MultiViews
            Require all granted
        </Directory>
-  
-        Alias "/fiscaliza421/suporte" "/opt/redmine421suporte/public"
-        <LocationMatch "^/fiscaliza421/suporte">
-            PassengerRuby /usr/local/rvm/wrappers/ruby-${ruby_version}/ruby
-            PassengerBaseURI /fiscaliza421/suporte
-            PassengerAppRoot /opt/redmine421suporte
-            PassengerUser apache
-  SetEnv PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY 0
-            RailsEnv development
-       </LocationMatch>
-       <Directory "/opt/redmine421suporte/public">
-           Allow from all
-           Options -MultiViews
-           Require all granted
-       </Directory>
-  
 EOF
 
   echo "-- Reiniciando Apache..."
