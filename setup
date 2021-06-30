@@ -358,6 +358,22 @@ EOF
   > /root/.patch_redmine421_ok
 fi
 
+if [ ! -e /root/.patch_gitconfig1_ok ]; then 
+  
+  cat << "EOF" > /tmp/novo
+[alias]
+   repos-trocar = "! recur_cmd() { for repo in `find . -name .git -type d -prune -printf '%h '`; do (cd $repo && printf \"\\e[40;33;1m${repo} \\e[0m\\e[40;33m\"$@\"\\e[0m \" && eval \"git checkout $1\" ); done }; recur_cmd "
+   repos-cmd = "! recur_cmd() { for repo in `find . -name .git -type d -prune -printf '%h '`; do (cd $repo && printf \"\\e[40;33;1m${repo} \\e[0m\\e[40;33m\"$@\"\\e[0m \" && eval \"git $@\" ); done }; recur_cmd "
+   repos-pull = "! git repos-cmd pull origin $1"
+   repos-st = "! git repos-cmd status $1"
+   repos-diff = "! git repos-cmd diff $1"
+   repos-log = "! git repos-cmd ls $1"
+EOF
+  cat /tmp/novo ~/.gitconfig  > ~/.gitconfig.novo
+  mv ~/.gitconfig.novo ~/.gitconfig
+  > /root/.patch_gitconfig1_ok
+fi
+
 
 # ############################
 # RODAR NO FINAL DO SCRIPT
