@@ -51,6 +51,7 @@ function _drop(){
 function _restore(){
 	shift
 	[[ $# -lt 2 ]] && uso;
+	systemctl restart postgresql-12
 	psql -U postgres -c "DROP DATABASE IF EXISTS $1"
 	psql -U postgres -c "CREATE DATABASE $1 OWNER=redmine"
 	pg_restore -U postgres -d $1 -O -x ${SHARE}/$2
