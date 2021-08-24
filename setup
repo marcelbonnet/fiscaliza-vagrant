@@ -381,8 +381,8 @@ group :development do
 end
 EOF
 
-rvm use 2.7.2
 cd /opt/redmine421fiscaliza
+rvm use 2.7.2
 bundle install --with development
 
 cat << EOF > /opt/redmine421fiscaliza/fiscaliza.ru
@@ -425,7 +425,7 @@ _______________________________________________
 - Veja o arquivo ~/.bashrc para outras utilidades
 _______________________________________________
 EOF
-
+> /root/.patch_pry_debug_ok
 fi
 
 
