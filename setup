@@ -374,6 +374,59 @@ EOF
   > /root/.patch_gitconfig1_ok
 fi
 
+if [ ! -e /root/.patch_pry_debug_ok ]; then
+cat << EOF >> /opt/redmine421fiscaliza/Gemfile.local
+group :development do
+  gem "pry-byebug"
+end
+EOF
+
+cd /opt/redmine421fiscaliza
+bundle install --with development
+
+cat << EOF > /opt/redmine421fiscaliza/fiscaliza.ru
+# rails server
+require ::File.expand_path('../config/environment',  __FILE__)
+map ENV['RAILS_RELATIVE_URL_ROOT'] || '/' do
+  #run RedmineApp::Application
+  run Rails.application
+end
+EOF
+
+cat << EOF >> /root/.bashrc
+# debug com o rails server:
+# comentar a linha de código com o comando binding.pry na linha onde o debug deve iniciar
+# Desligue o Apache com "systemctl stop httpd" e inicie o servidor do rails com o comando "s"
+alias s='cd /opt/redmine421fiscaliza && RAILS_RELATIVE_URL_ROOT=/fiscaliza421 rails s -p 80 -b 0.0.0.0 -c fiscaliza.ru'
+EOF
+
+cat << EOF > /etc/motd
+  ____           _    ___  ____    _____
+ / ___|___ _ __ | |_ / _ \/ ___|  |___  |
+| |   / _ \ '_ \| __| | | \___ \     / /
+| |__|  __/ | | | |_| |_| |___) |   / /
+ \____\___|_| |_|\__|\___/|____/   /_/
+_______________________________________________
+- WEB
+   Redmine
+      * http://localhost:10080/fiscaliza323
+      * login=admin, senha=12345678
+- Open Street Maps
+   Tiles
+      * http://localhost:10080/renderd/exemplo.html
+   Nominatim
+      * http://localhost:10080/nominatim/
+   Graph Hopper (Rotas)
+      * http://localhost:10080/openstreetmap/rotas/route?point=-25.429596%2C-49.271272&point=-23.311288%2C-51.159502&type=json&locale=pt-BR&key=&elevation=false&profile=car&points_encoded=false
+
+- Redmine instalado em /opt
+- Utilitários: use o comando 'ajuda'
+- Veja o arquivo ~/.bashrc para outras utilidades
+_______________________________________________
+EOF
+
+fi
+
 
 # ############################
 # RODAR NO FINAL DO SCRIPT
