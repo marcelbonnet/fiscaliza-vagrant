@@ -381,6 +381,7 @@ group :development do
 end
 EOF
 
+rvm use 2.7.2
 cd /opt/redmine421fiscaliza
 bundle install --with development
 
