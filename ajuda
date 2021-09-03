@@ -1,14 +1,7 @@
 #!/bin/bash
 # 2020-05-27
 
-SHARE=${VAGRANT_DIR:=/vagrant}
-
 function uso(){
-	echo -e "\e[33mQuando eu precisar de arquivos, espero encontrá-los em \e[33;1m${SHARE}\e[33m."
-	echo -e "Para alterar o caminho você pode rodar o script assim:"
-	echo -e "VAGRANT_DIR=\"/vagrant_data_xpto/Meus Dados\" `basename $0`"
-	echo -e "\e[0m"
-
 	printf "\tOpções:\n"
 	printf "\t%s --dir [diretório]\n" "`basename $0`"
 	printf "\t\t Configura variável VAGRANT_DIR de modo permanente, se você quiser usar outro caminho para o script quando procurar por arquivos.\n"
@@ -54,7 +47,7 @@ function _restore(){
 	systemctl restart postgresql-12
 	psql -U postgres -c "DROP DATABASE IF EXISTS $1"
 	psql -U postgres -c "CREATE DATABASE $1 OWNER=redmine"
-	pg_restore -U postgres -d $1 -O -x ${SHARE}/$2
+	pg_restore -U postgres -d $1 -O -x $2
 	# se estiver fazendo restore da base de dados do Fiscaliza:
 	rails runner "u=User.find_by([\"login like ?\", 'UISoCboc%']); unless u.nil?; u.admin = true; u.login='admin'; u.auth_source = nil; u.salt_password('12345678'); u.save; puts 'Usuário admin 12345678 restaurado.'; end"
 }
@@ -62,7 +55,7 @@ function _restore(){
 function _dump(){
 	shift
 	[[ $# -lt 2 ]] && uso;
-	pg_dump -U postgres -Fc -d $1 -f ${SHARE}/$2
+	pg_dump -U postgres -Fc -d $1 -f $2
 }
 
 function _redmine_set_db(){
