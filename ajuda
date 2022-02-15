@@ -50,8 +50,31 @@ function _restore(){
 	psql -U postgres -c "DROP DATABASE IF EXISTS $1"
 	psql -U postgres -c "CREATE DATABASE $1 OWNER=redmine"
 	pg_restore -U postgres -d $1 -O -x $2
-	# se estiver fazendo restore da base de dados do Fiscaliza:
-	rails runner "u=User.find_by([\"login like ?\", 'UISoCboc%']); unless u.nil?; u.admin = true; u.login='admin'; u.auth_source = nil; u.salt_password('12345678'); u.save; puts 'Usuário admin 12345678 restaurado.'; end"
+	codigo=$(cat <<EOF
+senha='12345678'
+# para usar com dumps da infra oficial:
+u=User.find_by(["login like ?", 'UISoCboc%'])
+unless u.nil?
+	u.admin = true
+	u.login='admin'
+	u.auth_source = nil
+	u.salt_password(senha)
+	u.save
+	puts "Usuário admin #{senha} restaurado."
+end
+
+# para todo dump, inclusive o que protege dados sensíveis
+User.where(admin:false).each do |u|
+	u.auth_source = nil
+	u.salt_password(senha)
+	u.save
+end
+PUTS ""
+puts "================= RECONFIGURADO ================"
+puts "Todos os usuários não admin com senha resetada para #{senha} e modo de autenticação interna do Redmine."
+EOF
+)
+	rails runner "$codigo"
 }
 
 function _dump(){
@@ -63,7 +86,27 @@ function _dump(){
 function _dump_sensivel(){
 	shift
 	[[ $# -lt 2 ]] && uso;
-	pg_dump -U postgres -Fc --exclude-table-data=tokens -d $1 -f $2
+	tmpdb=redmine_temp
+	db=$1
+	sql=$(cat <<EOF
+drop database if exists $tmpdb;
+create database $tmpdb with template $db;
+\c $db;
+delete from tokens;
+update users set hashed_password='xxx', salt='xxx', auth_source_id=null;
+EOF
+)
+	du -hs /var/lib/pgsql/12/data/
+	echo "Criando uma cópia da base sem dados sensíveis..."
+	echo "$sql" | psql -U postgres
+	# pg_dump -U postgres -Fc --exclude-table-data=tokens -d $tmpdb -f $2
+	echo "Fazendo o arquivo de backup da base para $2"
+	pg_dump -U postgres -Fc -d $tmpdb -f $2
+	echo "Limpando a bagunça..."
+	du -hs /var/lib/pgsql/12/data/
+	psql -U postgres -c "drop database $tmpdb;"
+	du -hs /var/lib/pgsql/12/data/
+	echo "Feito."
 }
 
 function _redmine_set_db(){
