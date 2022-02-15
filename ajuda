@@ -69,7 +69,7 @@ User.where(admin:false).each do |u|
 	u.salt_password(senha)
 	u.save
 end
-PUTS ""
+puts ""
 puts "================= RECONFIGURADO ================"
 puts "Todos os usuários não admin com senha resetada para #{senha} e modo de autenticação interna do Redmine."
 EOF
