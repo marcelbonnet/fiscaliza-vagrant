@@ -13,6 +13,8 @@ function uso(){
 	printf "\t\t Recupera um backup do Postgres. Se a base existir, será destruída primeiro. Se não existir, será criada.\n"
 	printf "\t%s --dump [nome da base de dados] [arquivo] \n" "`basename $0`"
 	printf "\t\t Gera um backup do Postgres para o arquivo.\n"
+	printf "\t%s --dump-sensivel [nome da base de dados] [arquivo] \n" "`basename $0`"
+	printf "\t\t Gera um backup do Postgres para o arquivo. O backup não conterá informações sensíveis (hashs de senha de administradores, tokens de acesso de usuários...)\n"
 	printf "\t%s --redmine-set-db [nome da base de dados] [-f|-s|-f4|-s4|caminho] \n" "`basename $0`"
 	printf "\t\t Configura qual banco de dados o Redmine usará.\n\t\t\t-f/-f4\tRedmine Fiscaliza/Fiscaliza 4.x\n\t\t\t-s/-s4\tRedmine Suporte/Suporte 4.x\n\t\t\tcaminho\tCaminho para o redmine\n"
 	printf "\t%s --redmine-db \n" "`basename $0`"
@@ -56,6 +58,12 @@ function _dump(){
 	shift
 	[[ $# -lt 2 ]] && uso;
 	pg_dump -U postgres -Fc -d $1 -f $2
+}
+
+function _dump_sensivel(){
+	shift
+	[[ $# -lt 2 ]] && uso;
+	pg_dump -U postgres -Fc --exclude-table-data=tokens -d $1 -f $2
 }
 
 function _redmine_set_db(){
@@ -126,6 +134,7 @@ do
 	--restore) _restore $@ ; shift ;;
 	--dir) _dir $@ ; shift ;;
 	--dump) _dump $@ ; shift ;;
+	--dump-sensivel) _dump_sensivel $@ ; shift ;;
 	--redmine-set-db) _redmine_set_db $@ ; shift; break ;;
 	--redmine-db) _redmine_db $@ ;;
 	--osm-uf) _osmosis $@ ; shift ;;
