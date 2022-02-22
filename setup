@@ -429,6 +429,40 @@ EOF
 fi
 
 
+
+if [ ! -e /root/.patch_apache_outra_porta_ok ]; then
+
+sed -i'.bkp' -e "s,Listen 80,Listen 10081," /etc/httpd/conf/httpd.conf
+systemctl enable httpd
+systemctl start httpd
+
+cat << EOF > /etc/motd
+  ____           _    ___  ____    _____
+ / ___|___ _ __ | |_ / _ \/ ___|  |___  |
+| |   / _ \ '_ \| __| | | \___ \     / /
+| |__|  __/ | | | |_| |_| |___) |   / /
+ \____\___|_| |_|\__|\___/|____/   /_/
+_______________________________________________
+- WIKI DESENVOLVEDORES
+   https://sistemas.anatel.gov.br/fiscaliza/projects/176/wiki
+- Redmine 4 (use o servidor do rails)
+      * http://localhost:10080/fiscaliza421
+- Open Street Maps (Apache Web Server)
+   Tiles
+      * http://localhost:10081/renderd/exemplo.html
+   Nominatim
+      * http://localhost:10081/nominatim/
+   Graph Hopper (Rotas)
+      * http://localhost:10081/openstreetmap/rotas/route?point=-25.429596%2C-49.271272&point=-23.311288%2C-51.159502&type=json&locale=pt-BR&key=&elevation=false&profile=car&points_encoded=false
+- Redmine instalado em /opt
+- Utilitários: use o comando 'ajuda'
+- Veja o arquivo ~/.bashrc para outras utilidades
+_______________________________________________
+EOF
+> /root/.patch_apache_outra_porta_ok
+fi
+
+
 # ############################
 # RODAR NO FINAL DO SCRIPT
 # ############################
