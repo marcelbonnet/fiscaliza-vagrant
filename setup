@@ -453,7 +453,8 @@ _______________________________________________
    Nominatim
       * http://localhost:10081/nominatim/
    Graph Hopper (Rotas)
-      * http://localhost:10081/openstreetmap/rotas/route?point=-25.429596%2C-49.271272&point=-23.311288%2C-51.159502&type=json&locale=pt-BR&key=&elevation=false&profile=car&points_encoded=false
+      * API http://localhost:10081/openstreetmap/rotas/route?point=-25.429596%2C-49.271272&point=-23.311288%2C-51.159502&type=json&locale=pt-BR&key=&elevation=false&profile=car&points_encoded=false
+      * MAPA http://localhost:8989/maps/?point=-24.926295%2C-53.475952&point=-23.855698%2C-50.188293&point=-25.080624%2C-50.185547&point=-24.119808%2C-51.207962&point=londrina&point=-23.830576%2C-53.426514&point=maringa&locale=en-US&elevation=false&profile=car&use_miles=false&layer=Omniscale
 - Redmine instalado em /opt
 - Utilitários: use o comando 'ajuda'
 - Veja o arquivo ~/.bashrc para outras utilidades
